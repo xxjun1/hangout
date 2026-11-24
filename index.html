@@ -126,6 +126,49 @@ input:focus{outline:1px solid var(--lime)}
  .chatbox{height:calc(100dvh - 180px);min-height:400px}
  .view-title{font-size:29px}.options{gap:7px}.option{padding:12px}
 }
+  .member-open {
+  cursor: pointer;
+  border-radius: 9px;
+  padding: 10px 8px;
+  margin-left: -8px;
+  transition: .2s;
+}
+.member-open:hover {
+  background: #202b20;
+}
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  font: 700 27px 'Space Grotesk';
+  color: #11170d;
+  background: var(--lime);
+  margin-bottom: 14px;
+}
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-top: 18px;
+}
+.profile-stat {
+  background: #202820;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 13px;
+}
+.profile-stat small {
+  display: block;
+  color: var(--muted);
+  font: 9px 'DM Mono';
+  margin-bottom: 8px;
+}
+.profile-stat strong {
+  font: 700 17px 'Space Grotesk';
+  color: var(--lime);
+}
 </style>
 </head>
 <body>
@@ -259,6 +302,42 @@ input:focus{outline:1px solid var(--lime)}
   <label>INVITE CODE</label><input id="joinCode" maxlength="6" placeholder="A7K9Q2" style="text-transform:uppercase;letter-spacing:4px">
   <div class="modal-actions"><button class="btn secondary" onclick="closeModal('joinModal')">CANCEL</button><button class="btn primary" onclick="joinRoom()">JOIN ↗</button></div>
 </div></div>
+  <div class="modal-bg" id="memberModal">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between">
+      <div class="kicker">CREW MEMBER</div>
+      <button class="btn ghost"
+        onclick="closeModal('memberModal')">CLOSE ×</button>
+    </div>
+
+    <div class="profile-avatar" id="memberAvatar">H</div>
+
+    <h2 id="memberName">Member</h2>
+    <p id="memberRole">CREW MEMBER</p>
+
+    <div class="notice" id="memberStatus">
+      ● ONLINE
+    </div>
+
+    <div class="profile-grid">
+      <div class="profile-stat">
+        <small>CREW POINTS</small>
+        <strong id="memberPoints">0</strong>
+      </div>
+      <div class="profile-stat">
+        <small>JOINED</small>
+        <strong id="memberJoined">-</strong>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn primary"
+        onclick="closeModal('memberModal')">
+        NICE TO MEET YOU
+      </button>
+    </div>
+  </div>
+</div>
 <div id="toast"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -321,13 +400,73 @@ function updateProfile(name){
  return true;
 }
 function renderMembers(){
- const list=Object.entries(state.members).map(([uid,m])=>({uid,...m})).filter(m=>m.online!==false);
- $("onlineStat").innerHTML=list.length+' <small>PEOPLE</small>';
- $("homeMembers").innerHTML=list.length?list.map(m=>`<div class="online-row"><span>●</span>${esc(m.name)} ${m.uid===state.uid?"(YOU)":""}</div>`).join(""):"현재 접속자가 없습니다.";
- $("onlineList").innerHTML=list.length?list.map(m=>`<div class="online-row"><span>●</span>${esc(m.name)}</div>`).join(""):"현재 접속자가 없습니다.";
- const points=Number(state.members[state.uid]?.points)||0;
- $("pointStat").innerHTML=points+' <small>PTS</small>';
- renderLeaderboard();
+  const list = Object.entries(state.members)
+    .map(([uid,m])=>({uid,...m}))
+    .filter(m=>m.online!==false);
+
+  $("onlineStat").innerHTML =
+    list.length + ' <small>PEOPLE</small>';
+
+  const makeRows = (members) => members.map(m=>`
+    <div class="online-row member-open"
+         data-uid="${esc(m.uid)}">
+      <span>●</span>
+      ${esc(m.name)}
+      ${m.uid===state.uid ? "(YOU)" : ""}
+      ${state.meta?.owner===m.uid ? " 👑" : ""}
+    </div>
+  `).join("");
+
+  $("homeMembers").innerHTML = list.length
+    ? makeRows(list)
+    : "현재 접속자가 없습니다.";
+
+  $("onlineList").innerHTML = list.length
+    ? makeRows(list)
+    : "현재 접속자가 없습니다.";
+
+  document.querySelectorAll(".member-open")
+    .forEach(el=>{
+      el.onclick=()=>openMember(el.dataset.uid);
+    });
+
+  const points =
+    Number(state.members[state.uid]?.points)||0;
+
+  $("pointStat").innerHTML =
+    points + ' <small>PTS</small>';
+
+  renderLeaderboard();
+}
+function openMember(uid){
+  const m = state.members[uid];
+
+  if(!m) return;
+
+  $("memberAvatar").textContent =
+    String(m.name||"?").charAt(0).toUpperCase();
+
+  $("memberName").textContent = m.name || "Guest";
+
+  $("memberRole").textContent =
+    state.meta?.owner===uid
+      ? "👑 ROOM OWNER"
+      : "CREW MEMBER";
+
+  $("memberStatus").textContent =
+    m.online===false
+      ? "● OFFLINE"
+      : "● ONLINE";
+
+  $("memberPoints").textContent =
+    Number(m.points)||0;
+
+  $("memberJoined").textContent =
+    m.joinedAt
+      ? new Date(m.joinedAt).toLocaleDateString("ko-KR")
+      : "기록 없음";
+
+  modal("memberModal");
 }
 function renderLeaderboard(){
  const rows=Object.entries(state.members).map(([uid,m])=>({uid,...m})).sort((a,b)=>(b.points||0)-(a.points||0));
