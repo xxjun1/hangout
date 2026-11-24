@@ -169,6 +169,93 @@ input:focus{outline:1px solid var(--lime)}
   font: 700 17px 'Space Grotesk';
   color: var(--lime);
 }
+  /* === POKER TABLE STYLES === */
+.poker-felt {
+  background: radial-gradient(ellipse at center, #1b3622 0%, #0e1c12 100%);
+  border: 2px solid #355238;
+  border-radius: 20px;
+  padding: 20px;
+  margin-top: 12px;
+  text-align: center;
+  box-shadow: inset 0 0 30px #00000080;
+}
+.pot-badge {
+  display: inline-block;
+  background: #0a110b;
+  border: 1px solid var(--lime);
+  color: var(--lime);
+  font: 700 13px 'DM Mono';
+  padding: 6px 14px;
+  border-radius: 20px;
+  margin-bottom: 14px;
+}
+.community-cards {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  min-height: 76px;
+  margin: 12px 0 20px;
+}
+.p-card {
+  width: 50px;
+  height: 72px;
+  background: #f4f6f0;
+  color: #111;
+  border-radius: 7px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 5px 6px;
+  font: 700 15px 'Space Grotesk';
+  box-shadow: 0 4px 10px #00000066;
+  user-select: none;
+}
+.p-card.red { color: #d93848; }
+.p-card.back {
+  background: repeating-linear-gradient(45deg, #1d2b20, #1d2b20 5px, #273a2b 5px, #273a2b 10px);
+  border: 2px solid #48634c;
+  color: transparent;
+}
+.p-card.empty {
+  background: #ffffff08;
+  border: 1px dashed #3d5240;
+  box-shadow: none;
+}
+.p-card span:last-child { align-self: flex-end; font-size: 16px; }
+.poker-seats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+.seat {
+  background: #121813d9;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  transition: .2s;
+}
+.seat.active-turn {
+  border-color: var(--lime);
+  box-shadow: 0 0 15px #c7ff5533;
+}
+.seat.folded { opacity: 0.45; }
+.seat-cards {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 10px 0;
+}
+.seat-cards .p-card { width: 42px; height: 60px; font-size: 13px; padding: 4px; }
+.poker-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #2b422e;
+}
 </style>
 </head>
 <body>
@@ -273,7 +360,13 @@ input:focus{outline:1px solid var(--lime)}
     <button class="btn ghost" onclick="modal('joinModal')">JOIN ROOM</button>
     <button class="btn ghost" onclick="leaveRoom()">LEAVE ROOM</button>
     <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
-    <div class="notice">프로토타입 버전입니다. 닉네임과 채팅 내용이 Firebase에 저장됩니다. 비밀번호, 주소, 전화번호 같은 개인정보는 입력하지 마세요. 현재 데이터베이스 권한 규칙은 친구들끼리 테스트하기 위한 설정이며, 불특정 다수 공개 전에는 서버 측 권한 검증을 강화해야 합니다.</div>
+    <div class="card game">
+      <div class="game-icon">♠️</div>
+      <div class="kicker">04 / FELT TABLE</div>
+      <h3>Poker Table</h3>
+      <p>친구들과 칩을 걸고 텍사스 홀덤 한 판! 승자에게는 랭킹 포인트 +5 PTS가 지급됩니다.</p>
+      <button class="btn primary" onclick="openPoker()">PLAY POKER ↗</button>
+    </div>
   </div>
 </section>
 </main>
@@ -503,6 +596,7 @@ async function openRoom(code){
   updateRoomUI();closeModal("joinModal");closeModal("createModal");
   notify(state.meta.name+" 방에 입장했습니다.");
  }catch(e){console.error(e);notify("입장 실패: Firebase 규칙을 확인해 주세요.")}
+  listen(db.ref("rooms/"+code+"/games/poker"),s=>{state.poker=s.val();renderPoker()});
 }
 async function createRoom(){
  if(!state.uid||!state.name){notify("닉네임을 먼저 설정해 주세요.");return}
@@ -631,6 +725,315 @@ async function init(){
  }catch(e){console.error(e);$("connection").textContent="CONNECTION ERROR";notify("Firebase 설정을 확인해 주세요.")}
 }
 updateRoomUI();init();
+/* ================= TEXAS HOLD'EM ENGINE ================= */
+state.poker = null;
+
+function openPoker() {
+  if (!state.room) return notify("먼저 방에 입장해 주세요.");
+  $("gamePanel").style.display = "block";
+  $("gamePanelTitle").textContent = "♠️ TEXAS HOLD'EM";
+  renderPoker();
+}
+
+function createDeck() {
+  const suits = ["♠", "♥", "♦", "♣"];
+  const ranks = [
+    { r: 2, l: "2" }, { r: 3, l: "3" }, { r: 4, l: "4" }, { r: 5, l: "5" },
+    { r: 6, l: "6" }, { r: 7, l: "7" }, { r: 8, l: "8" }, { r: 9, l: "9" },
+    { r: 10, l: "10" }, { r: 11, l: "J" }, { r: 12, l: "Q" }, { r: 13, l: "K" }, { r: 14, l: "A" }
+  ];
+  const deck = [];
+  for (const s of suits) for (const rk of ranks) deck.push({ s, r: rk.r, l: rk.l });
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  return deck;
+}
+
+function renderCardHTML(card, hidden = false) {
+  if (!card) return `<div class="p-card empty"></div>`;
+  if (hidden) return `<div class="p-card back"></div>`;
+  const isRed = card.s === "♥" || card.s === "♦";
+  return `<div class="p-card ${isRed ? "red" : ""}"><span>${card.l}</span><span>${card.s}</span></div>`;
+}
+
+async function joinPokerTable() {
+  const pRef = roomRef("games/poker/players/" + state.uid);
+  const snap = await pRef.once("value");
+  if (!snap.exists()) {
+    await pRef.set({ name: state.name, chips: 1000, bet: 0, folded: false, acted: false, cards: [] });
+    notify("테이블에 착석했습니다! (1,000 칩 지급)");
+  }
+}
+
+async function rebuyPoker() {
+  await roomRef("games/poker/players/" + state.uid + "/chips").set(1000);
+  notify("1,000 칩이 충전되었습니다.");
+}
+
+async function startPokerHand() {
+  const p = state.poker || {};
+  const players = p.players || {};
+  const uids = Object.keys(players).filter(uid => (players[uid].chips || 0) > 0);
+  if (uids.length < 2) return notify("최소 2명 이상 칩을 보유하고 착석해야 시작할 수 있습니다.");
+
+  const deck = createDeck();
+  const community = [deck.pop(), deck.pop(), deck.pop(), deck.pop(), deck.pop()];
+  const updatedPlayers = {};
+
+  uids.forEach((uid, idx) => {
+    const blind = idx === 0 ? 10 : (idx === 1 ? 20 : 0);
+    const actualBlind = Math.min(players[uid].chips, blind);
+    updatedPlayers[uid] = {
+      name: state.members[uid]?.name || players[uid].name,
+      chips: players[uid].chips - actualBlind,
+      bet: actualBlind,
+      folded: false,
+      acted: false,
+      cards: [deck.pop(), deck.pop()]
+    };
+  });
+
+  // 칩이 0인 관전자 유지
+  Object.keys(players).forEach(uid => {
+    if (!updatedPlayers[uid]) {
+      updatedPlayers[uid] = { ...players[uid], folded: true, bet: 0, cards: [] };
+    }
+  });
+
+  const pot = uids.reduce((sum, uid) => sum + updatedPlayers[uid].bet, 0);
+  const firstTurn = uids.length > 2 ? uids[2] : uids[0];
+
+  await roomRef("games/poker").set({
+    stage: "preflop", // preflop -> flop -> turn -> river -> showdown
+    pot,
+    currentBet: 20,
+    turn: firstTurn,
+    order: uids,
+    community,
+    players: updatedPlayers,
+    winnerText: ""
+  });
+}
+
+async function pokerAction(type) {
+  const p = state.poker;
+  if (!p || p.turn !== state.uid || p.stage === "showdown") return;
+
+  const players = JSON.parse(JSON.stringify(p.players));
+  const me = players[state.uid];
+  let pot = p.pot || 0;
+  let currentBet = p.currentBet || 0;
+
+  if (type === "fold") {
+    me.folded = true;
+    me.acted = true;
+  } else if (type === "call") {
+    const toCall = Math.min(me.chips, currentBet - (me.bet || 0));
+    me.chips -= toCall;
+    me.bet = (me.bet || 0) + toCall;
+    pot += toCall;
+    me.acted = true;
+  } else if (type === "raise") {
+    const targetBet = currentBet + 50;
+    const toPut = Math.min(me.chips, targetBet - (me.bet || 0));
+    me.chips -= toPut;
+    me.bet = (me.bet || 0) + toPut;
+    pot += toPut;
+    currentBet = me.bet;
+    // 레이즈 시 다른 활성 플레이어들의 acted 초기화
+    p.order.forEach(uid => {
+      if (uid !== state.uid && !players[uid].folded && players[uid].chips > 0) {
+        players[uid].acted = false;
+      }
+    });
+    me.acted = true;
+  }
+
+  // 남은 생존자 확인
+  const activeUids = p.order.filter(uid => !players[uid].folded);
+  if (activeUids.length === 1) {
+    const winUid = activeUids[0];
+    players[winUid].chips += pot;
+    await roomRef("games/poker").update({
+      players, pot: 0, stage: "showdown", turn: null,
+      winnerText: `🏆 ${players[winUid].name} 승리! (기권승 / +${pot} 칩)`
+    });
+    if (winUid === state.uid) await addPoints(5);
+    return;
+  }
+
+  // 라운드 종료 여부 체크 (모든 생존자가 acted && 베팅액 일치 또는 올인)
+  const roundDone = activeUids.every(uid =>
+    players[uid].acted && (players[uid].bet === currentBet || players[uid].chips === 0)
+  );
+
+  if (roundDone) {
+    // 베팅 초기화 및 다음 스테이지로 이동
+    p.order.forEach(uid => {
+      players[uid].bet = 0;
+      players[uid].acted = false;
+    });
+    const stages = ["preflop", "flop", "turn", "river", "showdown"];
+    const nextStage = stages[stages.indexOf(p.stage) + 1];
+
+    if (nextStage === "showdown") {
+      // 족보 계산 및 승자 판정
+      let bestScore = -1;
+      let winners = [];
+      let bestHandName = "";
+
+      activeUids.forEach(uid => {
+        const seven = [...(players[uid].cards || []), ...(p.community || [])];
+        const res = evaluate7Cards(seven);
+        players[uid].handName = res.name;
+        if (res.score > bestScore) {
+          bestScore = res.score;
+          winners = [uid];
+          bestHandName = res.name;
+        } else if (res.score === bestScore) {
+          winners.push(uid);
+        }
+      });
+
+      const share = Math.floor(pot / winners.length);
+      winners.forEach(uid => { players[uid].chips += share; });
+      const winNames = winners.map(uid => players[uid].name).join(", ");
+
+      await roomRef("games/poker").update({
+        players, pot: 0, currentBet: 0, stage: "showdown", turn: null,
+        winnerText: `🏆 ${winNames} 승리! (${bestHandName} / +${share} 칩)`
+      });
+      if (winners.includes(state.uid)) await addPoints(5);
+    } else {
+      const nextTurn = activeUids.find(uid => players[uid].chips > 0) || activeUids[0];
+      await roomRef("games/poker").update({
+        players, pot, currentBet: 0, stage: nextStage, turn: nextTurn
+      });
+    }
+  } else {
+    // 다음 턴 플레이어 찾기
+    const curIdx = p.order.indexOf(state.uid);
+    let nextTurn = null;
+    for (let i = 1; i <= p.order.length; i++) {
+      const cand = p.order[(curIdx + i) % p.order.length];
+      if (!players[cand].folded && players[cand].chips > 0 && (!players[cand].acted || players[cand].bet < currentBet)) {
+        nextTurn = cand;
+        break;
+      }
+    }
+    await roomRef("games/poker").update({ players, pot, currentBet, turn: nextTurn });
+  }
+}
+
+/* 7장 중 최고 5장 족보 판정기 */
+function evaluate7Cards(cards) {
+  const combos = [];
+  for (let i = 0; i < 7; i++)
+    for (let j = i + 1; j < 7; j++)
+      combos.push(cards.filter((_, idx) => idx !== i && idx !== j));
+
+  let best = { score: -1, name: "High Card" };
+  for (const c of combos) {
+    const ev = evaluate5Cards(c);
+    if (ev.score > best.score) best = ev;
+  }
+  return best;
+}
+
+function evaluate5Cards(cards) {
+  const sorted = [...cards].sort((a, b) => b.r - a.r);
+  const ranks = sorted.map(c => c.r);
+  const isFlush = sorted.every(c => c.s === sorted[0].s);
+
+  let isStraight = false;
+  let straightHigh = ranks[0];
+  const uniqueRanks = [...new Set(ranks)];
+  if (uniqueRanks.length === 5) {
+    if (ranks[0] - ranks[4] === 4) isStraight = true;
+    if (ranks.join(",") === "14,5,4,3,2") { isStraight = true; straightHigh = 5; }
+  }
+
+  const counts = {};
+  ranks.forEach(r => counts[r] = (counts[r] || 0) + 1);
+  const groups = Object.entries(counts)
+    .map(([r, cnt]) => ({ r: Number(r), cnt }))
+    .sort((a, b) => b.cnt - a.cnt || b.r - a.r);
+
+  const kicker = groups.reduce((acc, g, idx) => acc + g.r * Math.pow(15, 4 - idx), 0);
+
+  if (isFlush && isStraight) return { score: 8e7 + straightHigh, name: "Straight Flush" };
+  if (groups[0].cnt === 4) return { score: 7e7 + kicker, name: "Four of a Kind" };
+  if (groups[0].cnt === 3 && groups[1].cnt === 2) return { score: 6e7 + kicker, name: "Full House" };
+  if (isFlush) return { score: 5e7 + kicker, name: "Flush" };
+  if (isStraight) return { score: 4e7 + straightHigh, name: "Straight" };
+  if (groups[0].cnt === 3) return { score: 3e7 + kicker, name: "Three of a Kind" };
+  if (groups[0].cnt === 2 && groups[1].cnt === 2) return { score: 2e7 + kicker, name: "Two Pair" };
+  if (groups[0].cnt === 2) return { score: 1e7 + kicker, name: "One Pair" };
+  return { score: kicker, name: "High Card" };
+}
+
+function renderPoker() {
+  if ($("gamePanelTitle").textContent !== "♠️ TEXAS HOLD'EM") return;
+  const area = $("gamePanelBody");
+  const p = state.poker || {};
+  const players = p.players || {};
+  const seated = Boolean(players[state.uid]);
+  const stage = p.stage || "waiting";
+
+  const visibleCount = { waiting: 0, preflop: 0, flop: 3, turn: 4, river: 5, showdown: 5 }[stage] || 0;
+  const commHTML = Array.from({ length: 5 }, (_, i) =>
+    renderCardHTML(i < visibleCount ? p.community?.[i] : null)
+  ).join("");
+
+  const seatsHTML = Object.entries(players).map(([uid, pl]) => {
+    const isMe = uid === state.uid;
+    const isTurn = p.turn === uid && stage !== "showdown";
+    const showCards = isMe || stage === "showdown";
+    const cardsHTML = (pl.cards && pl.cards.length)
+      ? pl.cards.map(c => renderCardHTML(c, !showCards)).join("")
+      : `<div style="font-size:10px;color:var(--muted);padding:18px 0">WAITING</div>`;
+
+    return `
+      <div class="seat ${isTurn ? "active-turn" : ""} ${pl.folded ? "folded" : ""}">
+        <div style="font-size:12px;font-weight:800">
+          ${esc(pl.name)} ${isMe ? "<span style='color:var(--lime)'>(YOU)</span>" : ""}
+        </div>
+        <div style="font:11px 'DM Mono';color:var(--green);margin-top:3px">
+          💰 ${pl.chips} ${pl.bet ? `· BET ${pl.bet}` : ""}
+        </div>
+        <div class="seat-cards">${cardsHTML}</div>
+        <div style="font:10px 'DM Mono';color:var(--lime)">
+          ${pl.folded ? "FOLDED" : (stage === "showdown" && pl.handName ? pl.handName : (isTurn ? "● THINKING..." : ""))}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  const myData = players[state.uid];
+  const isMyTurn = seated && p.turn === state.uid && stage !== "showdown" && stage !== "waiting";
+  const toCall = myData ? Math.max(0, (p.currentBet || 0) - (myData.bet || 0)) : 0;
+
+  area.innerHTML = `
+    <div class="poker-felt">
+      <div class="pot-badge">POT: ${p.pot || 0} CHIPS · ${stage.toUpperCase()}</div>
+      ${p.winnerText ? `<div style="color:var(--lime);font-weight:800;font-size:15px;margin-bottom:10px">${esc(p.winnerText)}</div>` : ""}
+      <div class="community-cards">${commHTML}</div>
+      <div class="poker-seats">${seatsHTML || '<p class="sub">아직 착석한 플레이어가 없습니다.</p>'}</div>
+      <div class="poker-controls">
+        ${!seated ? `<button class="btn primary" onclick="joinPokerTable()">SIT AT TABLE (+1,000 CHIPS)</button>` : ""}
+        ${seated && (myData.chips || 0) === 0 && (stage === "waiting" || stage === "showdown") ? `<button class="btn secondary" onclick="rebuyPoker()">REBUY (+1,000 CHIPS)</button>` : ""}
+        ${seated && (stage === "waiting" || stage === "showdown") ? `<button class="btn primary" onclick="startPokerHand()">DEAL NEW HAND ♠️</button>` : ""}
+        ${isMyTurn ? `
+          <button class="btn ghost" style="border-color:var(--red);color:var(--red)" onclick="pokerAction('fold')">FOLD</button>
+          <button class="btn secondary" onclick="pokerAction('call')">${toCall > 0 ? "CALL " + toCall : "CHECK"}</button>
+          <button class="btn primary" onclick="pokerAction('raise')" ${(myData.chips || 0) <= toCall ? "disabled" : ""}>RAISE +50</button>
+        ` : ""}
+      </div>
+    </div>
+  `;
+}
 </script>
 </body>
 </html>
