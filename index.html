@@ -1,146 +1,497 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>THE HANGOUT</title>
+<meta name="theme-color" content="#090b09">
+<title>THE HANGOUT — Your crew, your rules.</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#090b0b;--panel:#121717;--line:#27312e;--lime:#c8ff45;--muted:#9aa7a0}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#1b2921 0,transparent 35%),var(--bg);color:#f3f6f1;font:15px system-ui,sans-serif}
-main{max-width:980px;margin:36px auto;padding:20px}.brand{font-size:13px;letter-spacing:4px;color:var(--lime);font-weight:800}
-h1{font-size:clamp(34px,7vw,64px);line-height:.95;margin:12px 0 8px;letter-spacing:-3px}.sub{color:var(--muted);margin-bottom:26px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.panel{background:rgba(18,23,23,.94);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:14px}
-h2{font-size:17px;margin:0 0 14px}.row{display:flex;gap:8px;flex-wrap:wrap}input,button{font:inherit;border-radius:10px;padding:12px;border:1px solid var(--line)}
-input{background:#090e0c;color:white;min-width:0;flex:1}button{background:var(--lime);color:#10150b;border:0;font-weight:800;cursor:pointer}button.secondary{background:#202a25;color:#e8f1e9;border:1px solid #35443b}
-button:disabled{opacity:.5;cursor:not-allowed}.muted{color:var(--muted);font-size:13px}.hidden{display:none!important}
-#messages{height:240px;overflow:auto;background:#090e0c;border:1px solid var(--line);border-radius:12px;padding:12px;margin:12px 0}
-.msg{padding:6px 0;border-bottom:1px solid #1b2520;overflow-wrap:anywhere}.msg b{color:var(--lime)}
-.vote{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.vote button{flex:1;min-width:90px}
-#status{margin:12px 0;color:var(--lime);font-size:13px;min-height:18px}
-@media(max-width:650px){main{margin:12px auto;padding:14px}.grid{grid-template-columns:1fr}h1{letter-spacing:-2px}}
+:root{
+  --bg:#090b09;--panel:#111611;--panel2:#171e18;
+  --line:#29332b;--text:#f2f5ef;--muted:#89958b;
+  --lime:#c7ff55;--green:#74e9ad;--red:#ff737d;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Manrope,sans-serif}
+button,input{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.4;cursor:not-allowed}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.sidebar{padding:26px 17px;border-right:1px solid var(--line);height:100vh;position:sticky;top:0;background:#0c100d;display:flex;flex-direction:column}
+.logo{font:700 19px 'Space Grotesk';letter-spacing:3px;padding:0 10px 32px}
+.logo b{color:var(--lime)}
+.logo small{display:block;color:var(--muted);font:10px 'DM Mono';letter-spacing:2px;margin-top:5px}
+.label{font:10px 'DM Mono';letter-spacing:2px;color:#667168;margin:17px 10px 9px}
+.nav button{display:flex;width:100%;gap:13px;align-items:center;border:0;background:none;color:var(--muted);text-align:left;padding:13px 12px;border-radius:11px;margin:3px 0;font-size:13px;font-weight:700}
+.nav button:hover,.nav button.active{background:#1c291b;color:var(--lime)}
+.room-box{margin-top:20px;padding:16px;background:#151e15;border:1px solid #35452c;border-radius:14px}
+.room-box small{color:var(--muted);font:10px 'DM Mono'}
+.room-box strong{display:block;margin:8px 0;font-size:14px}
+.room-code{color:var(--lime);font:14px 'DM Mono';letter-spacing:3px}
+.account{margin-top:auto;padding-top:18px;border-top:1px solid var(--line);font-size:12px}
+.account span{color:var(--lime)}
+main{padding:0 35px 55px;min-width:0}
+header{height:75px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px}
+header strong{color:var(--text)}
+.page{display:none;padding-top:28px}
+.page.active{display:block;animation:appear .3s ease}
+@keyframes appear{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.hero{border:1px solid #39452b;border-radius:22px;min-height:270px;padding:36px;background:radial-gradient(ellipse at 85% 15%,#34471e 0%,transparent 40%),linear-gradient(115deg,#19231a,#111711);position:relative;overflow:hidden}
+.kicker{color:var(--lime);font:10px 'DM Mono';letter-spacing:3px}
+.hero h1{font:700 clamp(42px,6vw,68px)/.95 'Space Grotesk';letter-spacing:-4px;margin:20px 0}
+.hero h1 span{color:var(--lime)}
+.hero p{color:#a8b2a7;font-size:13px;line-height:1.8;max-width:440px}
+.hero:after{content:"H";position:absolute;right:8%;bottom:-100px;font:700 310px 'Space Grotesk';color:#ffffff08}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px;position:relative;z-index:1}
+.btn{border:0;padding:12px 17px;border-radius:10px;font-size:11px;font-weight:800}
+.primary{background:var(--lime);color:#11170d}
+.secondary{background:#252e26;color:white;border:1px solid #39443a}
+.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:15px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;min-width:0}
+.stat-title{font:10px 'DM Mono';color:var(--muted);letter-spacing:1px}
+.stat-value{font:700 27px 'Space Grotesk';margin-top:10px}
+.stat-value small{font:10px 'DM Mono';color:var(--muted)}
+.section{margin:30px 0 13px;display:flex;justify-content:space-between;align-items:end}
+.section h2{font:700 19px 'Space Grotesk';margin:0}
+.section p{font-size:10px;color:var(--muted);margin:5px 0 0}
+.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.quick article{cursor:pointer;transition:.2s}
+.quick article:hover{border-color:var(--lime);transform:translateY(-3px)}
+.qicon{font-size:25px;margin-bottom:15px}
+.quick h3{font-size:13px;margin:0}
+.quick p{color:var(--muted);font-size:10px;line-height:1.6}
+.lower{display:grid;grid-template-columns:1.4fr 1fr;gap:12px;margin-top:13px}
+.view-title{font:700 34px 'Space Grotesk';letter-spacing:-2px;margin:9px 0}
+.sub{font-size:11px;color:var(--muted);margin-bottom:22px}
+.chat-layout{display:grid;grid-template-columns:1fr 240px;gap:13px}
+.chatbox{padding:0;display:flex;flex-direction:column;height:600px}
+.chat-head{padding:16px;border-bottom:1px solid var(--line);font-weight:800;font-size:13px}
+.chat-head small{display:block;color:var(--muted);font:10px 'DM Mono';margin-top:5px}
+.messages{padding:17px;overflow:auto;display:flex;flex-direction:column;gap:12px;flex:1}
+.msg{max-width:82%;font-size:12px;line-height:1.6}
+.msg.mine{align-self:flex-end;text-align:right}
+.msg strong{display:block;color:var(--lime);font-size:10px;margin-bottom:4px}
+.bubble{padding:10px 12px;border-radius:4px 12px 12px 12px;background:#202921;text-align:left;overflow-wrap:anywhere}
+.mine .bubble{background:#304020;border-radius:12px 4px 12px 12px}
+.composer{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line)}
+input{background:#0b100c;border:1px solid #354136;border-radius:10px;color:white;padding:12px;width:100%;min-width:0}
+input:focus{outline:1px solid var(--lime)}
+.online-row{font-size:11px;padding:10px 0;border-bottom:1px solid var(--line)}
+.online-row span{color:var(--green);margin-right:8px}
+.games{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}
+.game h3{font:700 21px 'Space Grotesk';margin:12px 0 7px}
+.game p{font-size:11px;color:var(--muted);line-height:1.7}
+.game-icon{font-size:35px}
+.game-panel{margin-top:14px}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}
+.option{background:#192019;color:white;border:1px solid var(--line);border-radius:13px;padding:18px;text-align:left;min-height:90px}
+.option:hover,.option.chosen{border-color:var(--lime);background:#25331d}
+.option strong{display:block;font-size:13px}
+.option small{color:var(--muted);display:block;margin-top:12px;font:10px 'DM Mono'}
+.track{height:5px;background:#344036;border-radius:5px;margin-top:9px;overflow:hidden}
+.track i{display:block;height:100%;background:var(--lime)}
+.leader{display:grid;gap:8px}
+.leader-row{display:flex;align-items:center;gap:13px;background:#151b16;border:1px solid var(--line);border-radius:12px;padding:13px}
+.rank{font:14px 'DM Mono';color:var(--lime);width:25px}
+.leader-name{flex:1;font-size:12px;font-weight:700}
+.points{font:11px 'DM Mono';color:var(--lime)}
+.modal-bg{display:none;position:fixed;inset:0;background:#000c;z-index:10;align-items:center;justify-content:center;padding:15px}
+.modal-bg.open{display:flex}
+.modal{width:min(420px,100%);background:#151c16;border:1px solid #45523d;border-radius:19px;padding:23px}
+.modal h2{font:700 23px 'Space Grotesk';margin:8px 0}
+.modal p{font-size:11px;color:var(--muted);line-height:1.6}
+.modal label{display:block;font:10px 'DM Mono';color:var(--muted);margin:14px 0 7px}
+.modal-actions{display:flex;gap:8px;margin-top:18px}
+.modal-actions button{flex:1}
+.notice{font-size:10px;line-height:1.7;color:var(--muted);background:#1b241b;border:1px solid var(--line);padding:13px;border-radius:10px}
+#toast{position:fixed;bottom:20px;right:20px;background:#263522;border:1px solid #526a3c;padding:13px 17px;border-radius:10px;font-size:11px;display:none;z-index:20;max-width:85vw}
+.mobile-nav{display:none}
+@media(max-width:850px){
+ .app{grid-template-columns:1fr}.sidebar{display:none}main{padding:0 17px 85px}
+ .mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:5;justify-content:space-around;background:#0c100df2;border-top:1px solid var(--line);padding:10px 3px}
+ .mobile-nav button{background:none;border:0;color:var(--muted);font:10px 'DM Mono'}
+ .mobile-nav button.active{color:var(--lime)}
+ .chat-layout{grid-template-columns:1fr}.chat-layout aside{display:none}
+}
+@media(max-width:580px){
+ main{padding-left:12px;padding-right:12px}.hero{padding:24px 20px;min-height:250px}
+ .hero h1{font-size:47px}.hero:after{right:-10%;opacity:.7}
+ .stats{gap:7px}.card{padding:13px}.stat-value{font-size:22px}
+ .quick{grid-template-columns:1fr 1fr}.quick article:last-child{grid-column:span 2}
+ .lower{grid-template-columns:1fr}.games{grid-template-columns:1fr}
+ .chatbox{height:calc(100dvh - 180px);min-height:400px}
+ .view-title{font-size:29px}.options{gap:7px}.option{padding:12px}
+}
 </style>
 </head>
 <body>
+<div class="app">
+<aside class="sidebar">
+  <div class="logo">THE <b>HANGOUT</b><small>CREW NETWORK / 001</small></div>
+  <div class="label">WORKSPACE</div>
+  <nav class="nav">
+    <button class="active" data-page="home">▦　 Overview</button>
+    <button data-page="lounge">◉　 Lounge</button>
+    <button data-page="games">✣　 Arcade</button>
+    <button data-page="rank">♛　 Leaderboard</button>
+    <button data-page="settings">⚙　 Settings</button>
+  </nav>
+  <div class="room-box">
+    <small>CURRENT ROOM</small>
+    <strong id="sideRoom">No room joined</strong>
+    <div class="room-code" id="sideCode">------</div>
+    <button class="btn secondary" style="width:100%;margin-top:13px" onclick="invite()">INVITE ↗</button>
+  </div>
+  <div class="account">
+    <span>●</span> <b id="connection">CONNECTING</b>
+    <p id="profileName">Guest player</p>
+  </div>
+</aside>
+
 <main>
-  <div class="brand">FRIENDS ONLY · ONLINE SPACE</div>
-  <h1>THE<br>HANGOUT.</h1>
-  <div class="sub">친구들과 같이 쓰는 작은 온라인 아지트</div>
-  <section class="panel">
-    <h2>입장하기</h2>
-    <div class="row"><input id="nickname" maxlength="16" placeholder="닉네임"><button id="saveNick">닉네임 설정</button></div>
-    <p class="muted">닉네임을 설정한 뒤 방을 만들거나 초대 코드를 입력하세요.</p>
-    <div class="row"><button id="createRoom">새 방 만들기</button><input id="roomCode" maxlength="8" placeholder="초대 코드"><button class="secondary" id="joinRoom">참가</button></div>
-    <div id="status">Firebase 연결을 준비하고 있습니다.</div>
-  </section>
-  <div id="roomArea" class="hidden">
-    <section class="panel">
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <div><div class="muted">현재 접속 중인 방</div><h2 id="roomTitle">ROOM</h2></div>
-        <button class="secondary" id="copyInvite">초대 코드 복사</button>
-      </div>
-      <div class="muted">친구에게 방 코드를 보내고 같은 코드를 입력하게 하세요.</div>
-    </section>
-    <div class="grid">
-      <section class="panel">
-        <h2>LIVE CHAT</h2>
-        <div id="messages"></div>
-        <div class="row"><input id="chatInput" placeholder="메시지 입력..." maxlength="300"><button id="sendChat">전송</button></div>
-      </section>
-      <section class="panel">
-        <h2>밸런스 게임</h2>
-        <div id="question">둘 중 하나를 골라보세요.</div>
-        <div class="vote"><button class="secondary" id="voteA">짜장면</button><button class="secondary" id="voteB">짬뽕</button></div>
-        <div id="voteResult" class="muted">아직 투표가 없습니다.</div>
-      </section>
+<header>
+  <div>HANGOUT　/　<strong id="crumb">Overview</strong></div>
+  <button class="btn secondary" onclick="invite()">COPY INVITE LINK ↗</button>
+</header>
+
+<section class="page active" id="home">
+  <div class="hero">
+    <div class="kicker">THE PLACE TO BE YOURSELF</div>
+    <h1>YOUR CREW.<br><span>YOUR RULES.</span></h1>
+    <p>친구들이 모이는 우리만의 공간. 수다 떨고, 게임하고, 오늘의 기록을 쌓아보세요.</p>
+    <div class="actions">
+      <button class="btn primary" onclick="modal('createModal')">＋ CREATE A ROOM</button>
+      <button class="btn secondary" onclick="modal('joinModal')">JOIN WITH CODE ↗</button>
     </div>
   </div>
+  <div class="stats">
+    <div class="card"><div class="stat-title">CREW ONLINE</div><div class="stat-value" id="onlineStat">0 <small>PEOPLE</small></div></div>
+    <div class="card"><div class="stat-title">YOUR POINTS</div><div class="stat-value" id="pointStat">0 <small>PTS</small></div></div>
+    <div class="card"><div class="stat-title">MESSAGES</div><div class="stat-value" id="messageStat">0 <small>POSTS</small></div></div>
+  </div>
+  <div class="section"><div><h2>Jump right in<span style="color:var(--lime)">.</span></h2><p>우리들의 놀이터로 바로 이동하기</p></div></div>
+  <div class="quick">
+    <article class="card" onclick="go('lounge')"><div class="qicon">💬</div><h3>Crew Lounge</h3><p>실시간 채팅으로 이야기하기</p></article>
+    <article class="card" onclick="go('games')"><div class="qicon">🎮</div><h3>Arcade</h3><p>친구들과 미니게임 즐기기</p></article>
+    <article class="card" onclick="go('rank')"><div class="qicon">🏆</div><h3>Hall of Fame</h3><p>우리 모임 랭킹 확인하기</p></article>
+  </div>
+  <div class="lower">
+    <div class="card"><div class="stat-title">RECENT ACTIVITY</div><div id="recent" style="margin-top:14px;color:var(--muted);font-size:11px">방에 입장하면 최근 메시지가 표시됩니다.</div></div>
+    <div class="card"><div class="stat-title">THE CREW</div><div id="homeMembers" style="margin-top:14px;color:var(--muted);font-size:11px">아직 방에 입장하지 않았습니다.</div></div>
+  </div>
+</section>
+
+<section class="page" id="lounge">
+  <div class="kicker">LIVE CONNECTION</div><h1 class="view-title">Crew Lounge<span style="color:var(--lime)">.</span></h1>
+  <p class="sub">친구들과 실시간으로 이야기 나누는 우리들의 라운지</p>
+  <div class="chat-layout">
+    <div class="card chatbox">
+      <div class="chat-head" id="chatTitle"># general<small id="chatSub">방에 입장하면 대화를 시작할 수 있어요.</small></div>
+      <div class="messages" id="messages"><div style="margin:auto;color:var(--muted);font-size:11px;text-align:center">첫 번째 메시지를 남겨보세요.</div></div>
+      <form class="composer" id="chatForm"><input id="chatInput" maxlength="160" placeholder="메시지를 입력하세요..." autocomplete="off"><button class="btn primary">SEND ↗</button></form>
+    </div>
+    <aside class="card"><div class="stat-title">ONLINE NOW</div><div id="onlineList" style="margin-top:12px;color:var(--muted);font-size:11px">방에 입장해 주세요.</div><hr style="border:0;border-top:1px solid var(--line);margin:18px 0"><div class="stat-title">ROOM INVITE CODE</div><h2 id="loungeCode" style="color:var(--lime);letter-spacing:4px">------</h2><button class="btn secondary" onclick="invite()">COPY LINK</button></aside>
+  </div>
+</section>
+
+<section class="page" id="games">
+  <div class="kicker">PLAY TOGETHER</div><h1 class="view-title">The Arcade<span style="color:var(--lime)">.</span></h1>
+  <p class="sub">가볍게 즐기고 포인트를 쌓아보세요.</p>
+  <div class="games">
+    <div class="card game"><div class="game-icon">⚖️</div><div class="kicker">01 / CREW VOTE</div><h3>Balance Game</h3><p>둘 중 하나를 고르고 친구들의 선택을 확인하세요. 직접 질문을 만들 수도 있어요.</p><button class="btn primary" onclick="openBalance()">PLAY NOW ↗</button></div>
+    <div class="card game"><div class="game-icon">🎲</div><div class="kicker">02 / QUICK PLAY</div><h3>Dice Clash</h3><p>친구들과 주사위를 굴려 오늘의 행운을 겨뤄보세요.</p><button class="btn secondary" onclick="openDice()">ENTER GAME ↗</button></div>
+    <div class="card game"><div class="game-icon">⚡</div><div class="kicker">03 / SOLO CHALLENGE</div><h3>Reaction Test</h3><p>초록색 신호가 켜지면 눌러서 반응 속도를 기록하세요.</p><button class="btn secondary" onclick="openReaction()">TEST YOURSELF ↗</button></div>
+    <div class="card game"><div class="game-icon">♠️</div><div class="kicker">04 / FELT TABLE</div><h3>Poker Table</h3><p>친구들과 즐기는 가상 칩 포커 테이블은 다음 단계에서 연결합니다.</p><div class="notice">실시간 포커는 카드 정보와 게임 진행을 서버에서 안전하게 검증해야 하므로 현재는 준비 중입니다.</div></div>
+  </div>
+  <div class="card game-panel" id="gamePanel" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center"><h3 id="gamePanelTitle">GAME</h3><button class="btn ghost" onclick="$('gamePanel').style.display='none'">CLOSE ×</button></div>
+    <div id="gamePanelBody"></div>
+  </div>
+</section>
+
+<section class="page" id="rank">
+  <div class="kicker">CREW LEGENDS</div><h1 class="view-title">Hall of Fame<span style="color:var(--lime)">.</span></h1>
+  <p class="sub">우리 방에서 쌓은 포인트 기준 랭킹입니다.</p>
+  <div class="card"><div class="stat-title">TOP PLAYERS</div><div class="leader" id="leaderboard" style="margin-top:15px">방에 입장하면 랭킹이 표시됩니다.</div></div>
+</section>
+
+<section class="page" id="settings">
+  <div class="kicker">MAKE IT YOURS</div><h1 class="view-title">Settings<span style="color:var(--lime)">.</span></h1>
+  <div class="card" style="max-width:600px">
+    <h3>Your profile</h3><p class="sub">친구들에게 보여줄 닉네임</p>
+    <form id="nicknameForm" class="composer" style="padding:0;border:0"><input id="nicknameInput" maxlength="18" placeholder="닉네임"><button class="btn primary">SAVE</button></form>
+    <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+    <h3>Your room</h3><p class="sub" id="settingsRoom">아직 참여 중인 방이 없습니다.</p>
+    <button class="btn secondary" onclick="modal('createModal')">CREATE ROOM</button>
+    <button class="btn ghost" onclick="modal('joinModal')">JOIN ROOM</button>
+    <button class="btn ghost" onclick="leaveRoom()">LEAVE ROOM</button>
+    <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+    <div class="notice">프로토타입 버전입니다. 닉네임과 채팅 내용이 Firebase에 저장됩니다. 비밀번호, 주소, 전화번호 같은 개인정보는 입력하지 마세요. 현재 데이터베이스 권한 규칙은 친구들끼리 테스트하기 위한 설정이며, 불특정 다수 공개 전에는 서버 측 권한 검증을 강화해야 합니다.</div>
+  </div>
+</section>
 </main>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import { getDatabase, ref, set, get, push, onValue, update, runTransaction } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
-import { firebaseConfig } from "./firebase-config.js";
+</div>
 
-const statusEl=document.querySelector("#status");
-const setStatus=t=>statusEl.textContent=t;
-let db, uid, room="";
-let nick=localStorage.getItem("hangoutNick")||"";
-document.querySelector("#nickname").value=nick;
-document.querySelector("#saveNick").onclick=()=>{
-  const v=document.querySelector("#nickname").value.trim();
-  if(!v){setStatus("닉네임을 입력해 주세요.");return}
-  nick=v;localStorage.setItem("hangoutNick",nick);setStatus("닉네임을 저장했습니다.");
-};
-try{
- const app=initializeApp(firebaseConfig);
- const auth=getAuth(app);
- const credential=await signInAnonymously(auth);
- uid=credential.user.uid;
- db=getDatabase(app);
- setStatus("Firebase 연결 완료! 닉네임을 설정하고 방에 입장하세요.");
-}catch(e){setStatus("연결 오류: "+e.message+" — firebase-config.js와 Firebase 설정을 확인하세요.");}
+<nav class="mobile-nav">
+  <button class="active" data-page="home">▦ HOME</button>
+  <button data-page="lounge">◉ CHAT</button>
+  <button data-page="games">✣ GAMES</button>
+  <button data-page="rank">♛ RANK</button>
+  <button data-page="settings">⚙ MORE</button>
+</nav>
 
-function makeCode(){return Math.random().toString(36).slice(2,7).toUpperCase()}
-async function enterRoom(code){
- if(!db||!uid){setStatus("Firebase 연결이 아직 완료되지 않았습니다.");return}
- if(!nick){setStatus("먼저 닉네임을 설정해 주세요.");return}
- code=code.toUpperCase();
- const roomRef=ref(db,"rooms/"+code);
- const snap=await get(roomRef);
- if(!snap.exists()){setStatus("해당 방이 없습니다. 코드를 확인해 주세요.");return}
- room=code;
- await set(ref(db,`rooms/${room}/members/${uid}`),{nick,joinedAt:Date.now()});
- document.querySelector("#roomArea").classList.remove("hidden");
- document.querySelector("#roomTitle").textContent="ROOM / "+room;
- setStatus("방에 입장했습니다.");
- listenRoom();
-}
-document.querySelector("#createRoom").onclick=async()=>{
- if(!db||!uid){setStatus("Firebase 연결이 아직 완료되지 않았습니다.");return}
- if(!nick){setStatus("먼저 닉네임을 설정해 주세요.");return}
- let code=makeCode();
- while((await get(ref(db,"rooms/"+code))).exists()) code=makeCode();
- await set(ref(db,"rooms/"+code),{createdAt:Date.now(),createdBy:uid,members:{[uid]:{nick,joinedAt:Date.now()}},votes:{a:0,b:0},voters:{}});
- room=code;document.querySelector("#roomArea").classList.remove("hidden");
- document.querySelector("#roomTitle").textContent="ROOM / "+room;
- setStatus("방을 만들었습니다. 초대 코드를 친구에게 보내세요.");
- listenRoom();
+<div class="modal-bg" id="profileModal"><div class="modal">
+  <div class="kicker">WELCOME TO THE CREW</div><h2>What's your tag?</h2><p>친구들에게 보여줄 닉네임을 정해주세요.</p>
+  <input id="firstNickname" maxlength="18" placeholder="닉네임">
+  <div class="modal-actions"><button class="btn primary" onclick="saveFirstName()">ENTER HANGOUT ↗</button></div>
+</div></div>
+<div class="modal-bg" id="createModal"><div class="modal">
+  <div class="kicker">START A NEW SPACE</div><h2>Create a room.</h2><p>친구들을 초대할 나만의 공간을 만드세요.</p>
+  <label>ROOM NAME</label><input id="roomName" maxlength="24" placeholder="Friday Night Crew">
+  <div class="modal-actions"><button class="btn secondary" onclick="closeModal('createModal')">CANCEL</button><button class="btn primary" onclick="createRoom()">CREATE ↗</button></div>
+</div></div>
+<div class="modal-bg" id="joinModal"><div class="modal">
+  <div class="kicker">FIND YOUR PEOPLE</div><h2>Join a room.</h2><p>친구에게 받은 6자리 초대 코드를 입력하세요.</p>
+  <label>INVITE CODE</label><input id="joinCode" maxlength="6" placeholder="A7K9Q2" style="text-transform:uppercase;letter-spacing:4px">
+  <div class="modal-actions"><button class="btn secondary" onclick="closeModal('joinModal')">CANCEL</button><button class="btn primary" onclick="joinRoom()">JOIN ↗</button></div>
+</div></div>
+<div id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig={
+  apiKey:"AIzaSyBCWQlRcWLE10cVB3gQ40xNTYY5Wtl0gaU",
+  authDomain:"the-hangout-crew.firebaseapp.com",
+  databaseURL:"https://the-hangout-crew-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"the-hangout-crew",
+  storageBucket:"the-hangout-crew.firebasestorage.app",
+  messagingSenderId:"1022168696868",
+  appId:"1:1022168696868:web:bf23493b39120a917130b1"
 };
-document.querySelector("#joinRoom").onclick=()=>enterRoom(document.querySelector("#roomCode").value.trim());
-document.querySelector("#copyInvite").onclick=async()=>{
- try{await navigator.clipboard.writeText(room);setStatus("초대 코드 "+room+" 를 복사했습니다.")}catch{setStatus("초대 코드: "+room)}
-};
-function listenRoom(){
- onValue(ref(db,`rooms/${room}/messages`),snap=>{
-  const box=document.querySelector("#messages");box.innerHTML="";
-  const data=snap.val()||{};
-  Object.values(data).sort((a,b)=>a.time-b.time).slice(-100).forEach(m=>{
-   const div=document.createElement("div");div.className="msg";
-   const b=document.createElement("b");b.textContent=m.nick+": ";
-   const span=document.createElement("span");span.textContent=m.text;
-   div.append(b,span);box.append(div);
-  });box.scrollTop=box.scrollHeight;
- });
- onValue(ref(db,`rooms/${room}/votes`),snap=>{
-  const v=snap.val()||{a:0,b:0};document.querySelector("#voteResult").textContent=`짜장면 ${v.a||0}표 · 짬뽕 ${v.b||0}표`;
- });
+
+const $=id=>document.getElementById(id);
+const state={uid:null,name:localStorage.getItem("hangout_name")||"",room:null,meta:null,members:{},messages:[],balance:null,dice:null,listeners:[],reaction:null};
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const notify=(s)=>{const t=$("toast");t.textContent=s;t.style.display="block";clearTimeout(notify.timer);notify.timer=setTimeout(()=>t.style.display="none",2800)};
+function modal(id){$(id).classList.add("open")}
+function closeModal(id){$(id).classList.remove("open")}
+function go(page){
+ document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===page));
+ document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+ $("crumb").textContent=({home:"Overview",lounge:"Lounge",games:"Arcade",rank:"Leaderboard",settings:"Settings"})[page];
 }
-document.querySelector("#sendChat").onclick=async()=>{
- const input=document.querySelector("#chatInput"),text=input.value.trim();
- if(!text||!room)return;
- await push(ref(db,`rooms/${room}/messages`),{uid,nick,text,time:Date.now()});input.value="";
-};
-document.querySelector("#chatInput").addEventListener("keydown",e=>{if(e.key==="Enter")document.querySelector("#sendChat").click()});
-async function vote(which){
- if(!room)return;
- const voterRef=ref(db,`rooms/${room}/voters/${uid}`);
- const result=await runTransaction(voterRef,current=>current||which);
- if(!result.committed||result.snapshot.val()!==which){setStatus("투표는 한 번만 할 수 있습니다.");return}
- await runTransaction(ref(db,`rooms/${room}/votes/${which}`),n=>(n||0)+1);
- setStatus("투표 완료!");
+document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>go(b.dataset.page));
+
+let db,auth;
+let currentRefs=[];
+function listen(r,fn){r.on("value",fn);currentRefs.push(r)}
+function clearListeners(){currentRefs.forEach(r=>r.off());currentRefs=[]}
+function roomRef(path){return db.ref("rooms/"+state.room+"/"+path)}
+function makeCode(){
+ const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+ return Array.from({length:6},()=>chars[Math.floor(Math.random()*chars.length)]).join("");
 }
-document.querySelector("#voteA").onclick=()=>vote("a");
-document.querySelector("#voteB").onclick=()=>vote("b");
+function invite(){
+ if(!state.room){notify("먼저 방을 만들어 주세요.");modal("createModal");return}
+ const url=location.origin+location.pathname+"?room="+state.room;
+ if(navigator.clipboard?.writeText)navigator.clipboard.writeText(url).then(()=>notify("초대 링크를 복사했습니다.")).catch(()=>prompt("링크를 복사하세요.",url));
+ else prompt("링크를 복사하세요.",url);
+}
+function updateRoomUI(){
+ $("sideRoom").textContent=state.meta?.name||"No room joined";
+ $("sideCode").textContent=state.room||"------";
+ $("loungeCode").textContent=state.room||"------";
+ $("chatTitle").childNodes[0].textContent=state.room?"# "+state.meta.name:"# general";
+ $("chatSub").textContent=state.room?"ROOM "+state.room+" · LIVE CHAT":"방에 입장하면 대화를 시작할 수 있어요.";
+ $("settingsRoom").textContent=state.room?state.meta.name+" · "+state.room:"아직 참여 중인 방이 없습니다.";
+ $("profileName").textContent=state.name||"Guest player";
+ $("nicknameInput").value=state.name;
+}
+function updateProfile(name){
+ const v=String(name||"").trim().slice(0,18);
+ if(v.length<2){notify("닉네임은 2글자 이상 입력해 주세요.");return false}
+ state.name=v;localStorage.setItem("hangout_name",v);updateRoomUI();
+ if(state.room)roomRef("members/"+state.uid).update({name:v});
+ return true;
+}
+function renderMembers(){
+ const list=Object.entries(state.members).map(([uid,m])=>({uid,...m})).filter(m=>m.online!==false);
+ $("onlineStat").innerHTML=list.length+' <small>PEOPLE</small>';
+ $("homeMembers").innerHTML=list.length?list.map(m=>`<div class="online-row"><span>●</span>${esc(m.name)} ${m.uid===state.uid?"(YOU)":""}</div>`).join(""):"현재 접속자가 없습니다.";
+ $("onlineList").innerHTML=list.length?list.map(m=>`<div class="online-row"><span>●</span>${esc(m.name)}</div>`).join(""):"현재 접속자가 없습니다.";
+ const points=Number(state.members[state.uid]?.points)||0;
+ $("pointStat").innerHTML=points+' <small>PTS</small>';
+ renderLeaderboard();
+}
+function renderLeaderboard(){
+ const rows=Object.entries(state.members).map(([uid,m])=>({uid,...m})).sort((a,b)=>(b.points||0)-(a.points||0));
+ $("leaderboard").innerHTML=rows.length?rows.map((m,i)=>`<div class="leader-row"><div class="rank">${String(i+1).padStart(2,"0")}</div><div class="leader-name">${esc(m.name)} ${m.uid===state.uid?"(YOU)":""}</div><div class="points">${Number(m.points)||0} PTS</div></div>`).join(""):"방에 입장하면 랭킹이 표시됩니다.";
+}
+function renderMessages(){
+ const box=$("messages");
+ if(!state.messages.length){box.innerHTML='<div style="margin:auto;color:var(--muted);font-size:11px;text-align:center">첫 번째 메시지를 남겨보세요.</div>';return}
+ box.innerHTML=state.messages.map(m=>`<div class="msg ${m.uid===state.uid?"mine":""}"><strong>${esc(m.name)} · ${m.at?new Date(m.at).toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"}):"방금"}</strong><div class="bubble">${esc(m.text)}</div></div>`).join("");
+ box.scrollTop=box.scrollHeight;
+ $("messageStat").innerHTML=state.messages.length+' <small>POSTS</small>';
+ $("recent").innerHTML=state.messages.slice(-3).reverse().map(m=>`<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b>${esc(m.name)}</b><div style="margin-top:4px">${esc(m.text)}</div></div>`).join("");
+}
+async function openRoom(code){
+ code=String(code||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6);
+ if(code.length!==6){notify("초대 코드는 6자리입니다.");return}
+ try{
+  const snap=await db.ref("rooms/"+code+"/meta").once("value");
+  if(!snap.exists()){notify("해당 방을 찾을 수 없습니다.");return}
+  clearListeners();state.room=code;state.meta=snap.val();
+  const member=db.ref("rooms/"+code+"/members/"+state.uid);
+  await member.update({name:state.name,online:true,lastSeen:Date.now()});
+  member.onDisconnect().update({online:false,lastSeen:firebase.database.ServerValue.TIMESTAMP});
+  listen(db.ref("rooms/"+code+"/meta"),s=>{state.meta=s.val()||{};updateRoomUI()});
+  listen(db.ref("rooms/"+code+"/members"),s=>{state.members=s.val()||{};renderMembers()});
+  listen(db.ref("rooms/"+code+"/messages").limitToLast(70),s=>{
+   const v=s.val()||{};
+   state.messages=Object.entries(v).map(([id,m])=>({id,...m})).sort((a,b)=>(a.at||0)-(b.at||0));
+   renderMessages();
+  });
+  listen(db.ref("rooms/"+code+"/games/balance"),s=>{state.balance=s.val();renderBalance()});
+  listen(db.ref("rooms/"+code+"/games/dice"),s=>{state.dice=s.val();renderDice()});
+  history.replaceState({},"",location.pathname+"?room="+code);
+  updateRoomUI();closeModal("joinModal");closeModal("createModal");
+  notify(state.meta.name+" 방에 입장했습니다.");
+ }catch(e){console.error(e);notify("입장 실패: Firebase 규칙을 확인해 주세요.")}
+}
+async function createRoom(){
+ if(!state.uid||!state.name){notify("닉네임을 먼저 설정해 주세요.");return}
+ const name=$("roomName").value.trim()||state.name+"'s Crew";
+ try{
+  let code=makeCode();
+  for(let i=0;i<5;i++){
+   const s=await db.ref("rooms/"+code+"/meta").once("value");
+   if(!s.exists())break;code=makeCode();
+  }
+  await db.ref("rooms/"+code).set({
+   meta:{name,owner:state.uid,createdAt:Date.now()},
+   members:{[state.uid]:{name:state.name,points:0,online:true,joinedAt:Date.now()}},
+   messages:{},games:{}
+  });
+  await openRoom(code);
+ }catch(e){console.error(e);notify("방 생성 실패. Firebase 규칙을 확인해 주세요.")}
+}
+async function joinRoom(){await openRoom($("joinCode").value)}
+async function leaveRoom(){
+ if(!state.room)return notify("참여 중인 방이 없습니다.");
+ try{await roomRef("members/"+state.uid).update({online:false,lastSeen:Date.now()})}catch(e){}
+ clearListeners();state.room=null;state.meta=null;state.members={};state.messages=[];state.balance=null;state.dice=null;
+ history.replaceState({},"",location.pathname);updateRoomUI();renderMembers();renderMessages();notify("방에서 나왔습니다.");
+}
+async function addPoints(n){
+ if(!state.room)return;
+ const r=roomRef("members/"+state.uid+"/points");
+ await r.transaction(v=>(Number(v)||0)+n);
+}
+$("chatForm").onsubmit=async e=>{
+ e.preventDefault();const text=$("chatInput").value.trim().slice(0,160);
+ if(!state.room)return notify("먼저 방에 입장해 주세요.");
+ if(!text)return;
+ try{
+  await roomRef("messages").push({uid:state.uid,name:state.name,text,at:firebase.database.ServerValue.TIMESTAMP});
+  $("chatInput").value="";
+ }catch(err){notify("메시지를 보내지 못했습니다.")}
+};
+function openBalance(){
+ if(!state.room)return notify("먼저 방에 입장해 주세요.");
+ $("gamePanel").style.display="block";$("gamePanelTitle").textContent="⚖️ BALANCE GAME";renderBalance();
+}
+function renderBalance(){
+ const b=state.balance,area=$("gamePanelBody");
+ if(!$("gamePanel").style.display||$("gamePanelTitle").textContent!=="⚖️ BALANCE GAME")return;
+ if(!b){area.innerHTML='<p class="sub">아직 질문이 없습니다. 아래에서 첫 질문을 만들어 보세요.</p><input id="newQuestion" placeholder="질문을 입력하세요"><div class="options"><input id="optionA" placeholder="선택 A"><input id="optionB" placeholder="선택 B"></div><button class="btn primary" style="margin-top:12px" onclick="publishBalance()">PUBLISH QUESTION</button>';return}
+ const votes=b.votes||{},counts=[0,0];Object.values(votes).forEach(v=>{if(v===0||v===1)counts[v]++});
+ const total=counts[0]+counts[1],mine=votes[state.uid];
+ area.innerHTML=`<div class="kicker">CREW QUESTION</div><h2>${esc(b.question)}</h2><div class="options">${b.options.map((o,i)=>`<button class="option ${mine===i?"chosen":""}" onclick="vote(${i})"><strong>${esc(o)}</strong><small>${counts[i]} VOTES · ${total?Math.round(counts[i]/total*100):0}%</small><div class="track"><i style="width:${total?counts[i]/total*100:0}%"></i></div></button>`).join("")}</div><p class="sub">${total} TOTAL VOTES</p>${b.createdBy===state.uid?'<button class="btn ghost" onclick="newQuestion()">NEW QUESTION</button>':""}`;
+}
+async function publishBalance(){
+ const q=$("newQuestion")?.value.trim(),a=$("optionA")?.value.trim(),b=$("optionB")?.value.trim();
+ if(!q||!a||!b)return notify("질문과 선택지 2개를 입력해 주세요.");
+ await roomRef("games/balance").set({question:q,options:[a,b],createdBy:state.uid,votes:{},createdAt:Date.now()});
+}
+async function vote(i){
+ if(!state.balance)return;
+ const vref=roomRef("games/balance/votes/"+state.uid);
+ const old=await vref.once("value");await vref.set(i);
+ if(!old.exists())await addPoints(1);
+ notify("투표 완료! +1 point");
+}
+function newQuestion(){
+ state.balance=null;roomRef("games/balance").remove();
+ $("gamePanelBody").innerHTML='<p class="sub">질문을 새로 만들고 있습니다.</p>';
+ renderBalance();
+}
+function openDice(){
+ if(!state.room)return notify("먼저 방에 입장해 주세요.");
+ $("gamePanel").style.display="block";$("gamePanelTitle").textContent="🎲 DICE CLASH";renderDice();
+}
+function renderDice(){
+ if($("gamePanelTitle").textContent!=="🎲 DICE CLASH")return;
+ const d=state.dice,area=$("gamePanelBody");
+ if(!d){area.innerHTML='<p class="sub">새 라운드를 시작하세요.</p><button class="btn primary" onclick="startDice()">NEW ROUND</button>';return}
+ const rolls=d.rolls||{},entries=Object.entries(rolls).map(([uid,r])=>({uid,...r})).sort((a,b)=>b.value-a.value);
+ area.innerHTML=`<div class="options">${entries.length?entries.map(r=>`<div class="option"><strong>${esc(r.name)}</strong><small style="font-size:25px;color:var(--lime)">${r.value}</small></div>`).join(""):'<p class="sub">아직 굴린 사람이 없습니다.</p>'}</div><button class="btn primary" onclick="rollDice()" ${rolls[state.uid]?"disabled":""}>ROLL DICE</button>`;
+}
+async function startDice(){await roomRef("games/dice").set({createdAt:Date.now(),rolls:{}})}
+async function rollDice(){
+ const r=roomRef("games/dice/rolls/"+state.uid),old=await r.once("value");
+ if(old.exists())return notify("이번 라운드에서는 이미 굴렸어요.");
+ await r.set({name:state.name,value:1+Math.floor(Math.random()*6)});
+ await addPoints(1);notify("주사위 완료! +1 point");
+}
+let reactionTimer=null,reactionReady=false,reactionStart=0;
+function openReaction(){
+ $("gamePanel").style.display="block";$("gamePanelTitle").textContent="⚡ REACTION TEST";
+ $("gamePanelBody").innerHTML='<button id="reactionButton" class="option" style="width:100%;height:150px;text-align:center" onclick="reactionClick()"><strong>READY?</strong><small>START를 눌러 시작하세요</small></button><p class="sub" id="reactionResult">초록색 신호가 나오기 전에 누르면 실패합니다.</p><button class="btn primary" onclick="startReaction()">START TEST</button>';
+ reactionReady=false;
+}
+function startReaction(){
+ clearTimeout(reactionTimer);reactionReady=false;
+ const b=$("reactionButton");if(!b)return;
+ b.style.background="#332a18";b.innerHTML="<strong>WAIT FOR GREEN...</strong><small>아직 누르지 마세요</small>";
+ reactionTimer=setTimeout(()=>{reactionReady=true;reactionStart=performance.now();b.style.background="#245b32";b.innerHTML="<strong style='color:#c7ff55'>TAP NOW!</strong>";},1000+Math.random()*2500);
+}
+async function reactionClick(){
+ const b=$("reactionButton");
+ if(!reactionReady){clearTimeout(reactionTimer);$("reactionResult").textContent="너무 빨랐습니다! 다시 시작하세요.";b.style.background="#3b2022";return}
+ const ms=Math.round(performance.now()-reactionStart);reactionReady=false;b.style.background="#17231a";b.innerHTML="<strong>"+ms+"ms</strong>";
+ $("reactionResult").textContent=ms<250?"번개 같은 반응 속도!":ms<400?"좋은 기록입니다!":"다시 도전해 보세요!";
+ if(state.room&&ms<500){await addPoints(3);notify("+3 crew points")}
+ const old=Number(localStorage.getItem("hangout_best")||0);
+ if(!old||ms<old)localStorage.setItem("hangout_best",ms);
+}
+function saveFirstName(){
+ if(!updateProfile($("firstNickname").value))return;
+ closeModal("profileModal");
+ const code=new URLSearchParams(location.search).get("room");if(code)openRoom(code);
+}
+$("nicknameForm").onsubmit=e=>{e.preventDefault();if(updateProfile($("nicknameInput").value))notify("닉네임 저장 완료")};
+
+async function init(){
+ try{
+  firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.database();
+  auth.onAuthStateChanged(async user=>{
+   if(!user){await auth.signInAnonymously();return}
+   state.uid=user.uid;$("connection").textContent="● FIREBASE CONNECTED";
+   if(!state.name){modal("profileModal");return}
+   updateRoomUI();
+   const code=new URLSearchParams(location.search).get("room");if(code)openRoom(code);
+  });
+  db.ref(".info/connected").on("value",s=>{$("connection").textContent=s.val()?"● FIREBASE CONNECTED":"● RECONNECTING"});
+ }catch(e){console.error(e);$("connection").textContent="CONNECTION ERROR";notify("Firebase 설정을 확인해 주세요.")}
+}
+updateRoomUI();init();
 </script>
 </body>
 </html>
